@@ -9,14 +9,14 @@ sys.path.append(os.path.expanduser(os.path.join('~', 'src', 'bitfloor', 'lib')))
 from bitfloor import RAPI
 
 sys.path.append(os.path.expanduser(os.path.join('~', 'src', 'python-posix-daemon', 'src')))
-from daemon2x import Daemon
+#from daemon2x import Daemon
 
-from task import SimpleTask
+from task import SimpleTask, Daemon
 
-class FenceDaemon(Daemon):
-    def run(self):
-        while True:
-            time.sleep(SLEEP_INTERVAL)
+class FenceTask(SimpleTask):
+    def task(self):
+        print('SimpleTask running...')
+        time.sleep(1)
 
 def main():
     path = os.path.join('/etc','security','bfl.json')
@@ -43,30 +43,27 @@ def main():
         print '-' * 60
         time.sleep(3.723)
 
-if __name__ == "__main__":
-    daemon = SimpleTask('/tmp/fence-example.pid')
-    if len(sys.argv) == 2:
-        if 'start' == sys.argv[1]:
-            daemon.start()
-        elif 'stop' == sys.argv[1]:
-            daemon.stop()
-        elif 'restart' == sys.argv[1]:
-            daemon.restart()
-        else:
-            print "Unknown command"
-            sys.exit(2)
-        sys.exit(0)
-    else:
-        print "usage: %s start|stop|restart" % sys.argv[0]
-        sys.exit(2)
-
 #if __name__ == "__main__":
-#    tsk = SimpleTask('/tmp/fence.pid')
-#    tsk.SLEEP_INTERVAL = 4.0
-#    def printer(self):
-#        print('SimpleTask running...')
-#    tsk.task = printer
-#    tsk.argv(sys.argv)
+#    daemon = FenceTask('/tmp/fence-example.pid')
+#    if len(sys.argv) == 2:
+#        if 'start' == sys.argv[1]:
+#            daemon.start()
+#        elif 'stop' == sys.argv[1]:
+#            daemon.stop()
+#        elif 'restart' == sys.argv[1]:
+#            daemon.restart()
+#        else:
+#            print "Unknown command"
+#            sys.exit(2)
+#        sys.exit(0)
+#    else:
+#        print "usage: %s start|stop|restart" % sys.argv[0]
+#        sys.exit(2)
+
+if __name__ == "__main__":
+    tsk = FenceTask('/tmp/fence.pid')
+    tsk.SLEEP_INTERVAL = 1
+    tsk.argv(sys.argv)
 
 
 
