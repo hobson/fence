@@ -8,9 +8,13 @@ class SimpleTask:
     """
     SLEEP_INTERVAL = 1.1  # seconds between loops of the run task
     LOG_FILE = '/etc/log/simpletask.log'
-    flog = =
+    DEBUG = True
     
-    def __init__(self, pidfile, stdin=os.devnull, stdout=os.devnull, stderr=os.devnull):
+    def __init__(self, pidfile='/tmp/SimpleTask', stdin=os.devnull, stdout=os.devnull, stderr=os.devnull, logfile=LOG_FILE):
+        if self.DEBUG:
+            print 'initializing SimpleTask object'
+        #self.flog = open(LOGFILE)
+        self.task_counter = 0
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
@@ -21,6 +25,8 @@ class SimpleTask:
         UNIX double-fork magic, from Stevens' "Advanced Programming in the UNIX Environment"
         http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
         """
+        if self.DEBUG:
+            print 'daemonizing SimpleTask object'
         try:
             pid = os.fork()
             if pid > 0:
@@ -29,7 +35,8 @@ class SimpleTask:
         except OSError, e:
             sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
-    
+        if self.DEBUG:
+            print 'daemonizing successful'
         # decouple from parent environment
         os.chdir("/")
         os.setsid()
@@ -44,21 +51,31 @@ class SimpleTask:
         except OSError, e:
             sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
+        if self.DEBUG:
+            print 'daemonizing #2 successful'
     
         # redirect standard file descriptors
         sys.stdout.flush()
+        if self.DEBUG:
+            print 'flushed stdout'
         sys.stderr.flush()
         si = file(self.stdin, 'r')
         so = file(self.stdout, 'a+')
         se = file(self.stderr, 'a+', 0)
+        if self.DEBUG:
+            print 'opened stdin, stdout, stderr'
         os.dup2(si.fileno(), sys.stdin.fileno())
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
     
+        if self.DEBUG:
+            print 'writing pid file....'
         # write pidfile
         atexit.register(self.delpid)
         pid = str(os.getpid())
         file(self.pidfile,'w+').write("%s\n" % pid)
+        if self.DEBUG:
+            print 'finished daemonizing'
     
     def delpid(self):
         os.remove(self.pidfile)
@@ -122,8 +139,26 @@ class SimpleTask:
         self.stop()
         self.start()
 
+    def argv(self, argv):
+        if argv is None:
+            argv = argv
+        if len(argv) == 2:
+            if 'start' == argv[1]:
+                self.start()
+            elif 'stop' == argv[1]:
+                self.stop()
+            elif 'restart' == argv[1]:
+                self.restart()
+            else:
+                print "Unknown command"
+                sys.exit(2)
+            sys.exit(0)
+        else:
+            print "usage: %s start|stop|restart" % argv[0]
+            sys.exit(2)
+
     def task(self):
-        with open('a', task.log)
+         print 'You should probably override this function to do something useful that chips away at the total entropy in the universe.'
 
     def run(self):
         """
@@ -135,4 +170,5 @@ class SimpleTask:
         """
         while True:
             self.task()
+            self.task_counter += 1
             sleep(SLEEP_INTERVAL)
