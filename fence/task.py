@@ -8,9 +8,9 @@ class RepeatedTask(object):
     """
     WARN_LEVEL = 2
     
-    def __init__(self, pidfile='/tmp/RepeatedTask', stdin=os.devnull, stdout=os.devnull, stderr=os.devnull, logfile=None, debug=True, verbose=True):
+    def __init__(self, pidfile='/tmp/RepeatedTask', stdin=None, stdout=None, stderr=None, debug=True, verbose=True):
         self.SLEEP_INTERVAL = 3  # seconds between calls of the task() method
-        self.LOG_FILE = logfile or '/etc/log/repeated_task.log'
+        self.LOG_FILE = '/etc/log/repeated_task.log'
         self.DEBUG = debug
         self.VERBOSE = verbose
         self.MESSAGES = ('INFO', 'DEBUG', 'WARNING', 'ERROR', 'FATAL')
@@ -18,7 +18,31 @@ class RepeatedTask(object):
 
         #self.flog = open(LOGFILE)
         self.task_counter = 0
-        self.stdin = stdin
+        stdin = stdin or os.devnull
+        stdout = stdout or os.devnull
+        stderr = stderr or os.devnull
+        if isinstance(stdin, basestring):
+            try:
+                self.stdin = open(stdin, 'rUb')
+            except: 
+                self.stdin = os.devnull
+        else:
+            self.stdin = stdin
+        if isinstance(stdout, basestring):
+            try:
+                self.stdout = open(stdout, 'ab')
+            except: 
+                self.stdout = os.devnull
+        else:
+            self.stdout = stdout
+        if isinstance(stdin, basestring):
+            try:
+                self.stderr = open(stderr, 'ab')
+            except:
+                self.stderr = os.devnull
+        else:
+            self.stderr = stderr
+        
         self.stdout = stdout
         self.stderr = stderr
         self.pidfile = pidfile
@@ -185,4 +209,18 @@ class RepeatedTask(object):
             self.task()
             self.task_counter += 1
             time.sleep(self.SLEEP_INTERVAL)
+
+
+# TODO: Allow instantiation of a RepeatingTask object that Tee's stdout to 2 places (terminal and log)
+class Tee(object):
+    def __init__(self, name, mode):
+        self.file = open(name, mode)
+        self.stdout = sys.stdout
+        sys.stdout = self
+    def __del__(self):
+        sys.stdout = self.stdout
+        self.file.close()
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data)
 

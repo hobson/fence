@@ -23,10 +23,6 @@ class FenceTask(RepeatedTask):
 
     def task(self):
         print('FenceTask running...')
-
-def main():
-
-    while True:
         try:
             err = False
             last = float(bf.ticker()['price'])
@@ -38,6 +34,7 @@ def main():
             err = True
         print '-' * 60
         time.sleep(3.723)
+
 
 if __name__ == "__main__":
     tsk = FenceTask()
