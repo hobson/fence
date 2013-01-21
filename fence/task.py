@@ -16,7 +16,6 @@ class RepeatedTask(object):
         self.MESSAGES = ('INFO', 'DEBUG', 'WARNING', 'ERROR', 'FATAL')
         self.RAISE_LEVEL = self.MESSAGES.index('FATAL')
 
-        #self.flog = open(LOGFILE)
         self.task_counter = 0
         # these are just file paths at this point, not buffers or file pointers
         self.stdin = stdin or os.devnull

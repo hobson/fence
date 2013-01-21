@@ -37,7 +37,7 @@ class FenceTask(RepeatedTask):
 
 
 if __name__ == "__main__":
-    tsk = FenceTask(stderr=os.path.join('/var','log','fence_task_err.log'),stdout=os.path.join('fence_task.log'))
+    tsk = FenceTask(stderr=os.path.expanduser(os.path.join('~','tmp','fence_task_err.log')),stdout=os.path.expanduser(os.path.join('~','tmp','fence_task.log')))
     tsk.SLEEP_INTERVAL = 3
     tsk.argv(sys.argv)
 
