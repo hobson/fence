@@ -184,5 +184,5 @@ class RepeatedTask:
         while True:
             self.task()
             self.task_counter += 1
-            sleep(self.SLEEP_INTERVAL)
+            time.sleep(self.SLEEP_INTERVAL)
 
