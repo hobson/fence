@@ -15,8 +15,8 @@ DEFAULT_KEY_PATH = os.path.join('/etc','security','bfl.json')
 from task import RepeatedTask
 
 class FenceTask(RepeatedTask):
-    def __init__(self, key_path=DEFAULT_KEY_PATH):
-        super(FenceTask, self).__init__()
+    def __init__(self, key_path=DEFAULT_KEY_PATH, *args, **kwargs):
+        super(FenceTask, self).__init__(*args, **kwargs)
         with open(key_path) as f:
             config = json.load(f, object_hook=json_ascii.decode_dict)
             self.bf = RAPI(product_id=1, key=config['key'], secret=config['secret'])
@@ -37,7 +37,7 @@ class FenceTask(RepeatedTask):
 
 
 if __name__ == "__main__":
-    tsk = FenceTask()
+    tsk = FenceTask(stderr=os.path.join('/var','log','fence_task_err.log'),stdout=os.path.join('fence_task.log'))
     tsk.SLEEP_INTERVAL = 3
     tsk.argv(sys.argv)
 
