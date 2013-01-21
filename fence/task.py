@@ -1,7 +1,7 @@
 import sys, os, time, atexit
 from signal import SIGTERM
 
-class RepeatedTask:
+class RepeatedTask(object):
     """
     Generic background process (daemon, task).
     Usage: subclass the RepeatedTask class and do your task in the run() method
