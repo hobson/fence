@@ -1,32 +1,49 @@
 import sys, os, time, atexit
 from signal import SIGTERM
 
-class SimpleTask:
+class RepeatedTask:
     """
     Generic background process (daemon, task).
-    Usage: subclass the SimpleTaks class and do your task in the run() method
+    Usage: subclass the RepeatedTask class and do your task in the run() method
     """
-    SLEEP_INTERVAL = 1.1  # seconds between loops of the run task
-    LOG_FILE = '/etc/log/simpletask.log'
-    DEBUG = True
+    WARN_LEVEL = 2
     
-    def __init__(self, pidfile='/tmp/SimpleTask', stdin=os.devnull, stdout=os.devnull, stderr=os.devnull, logfile=LOG_FILE):
-        if self.DEBUG:
-            print 'initializing SimpleTask object'
+    def __init__(self, pidfile='/tmp/RepeatedTask', stdin=os.devnull, stdout=os.devnull, stderr=os.devnull, logfile=None, debug=True, verbose=True):
+        self.SLEEP_INTERVAL = 3  # seconds between calls of the task() method
+        self.LOG_FILE = logfile or '/etc/log/repeated_task.log'
+        self.DEBUG = debug
+        self.VERBOSE = verbose
+        self.MESSAGES = ('INFO', 'DEBUG', 'WARNING', 'ERROR', 'FATAL')
+        self.RAISE_LEVEL = self.MESSAGES.index('FATAL')
+
         #self.flog = open(LOGFILE)
         self.task_counter = 0
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
         self.pidfile = pidfile
-    
+
+    def message(self, msg, level=1):
+        if isinstance(level, basestring) and len(level.strip()):
+            try:
+                level = (l for l, prefix in enumerate(self.MESSAGES) if prefix.lower()[0] == level.strip()[0].lower()).next()
+            except StopIteration:
+                level = 2
+        prefix = self.MESSAGES[min(max(level, 0), len(self.MESSAGES))]
+        if level > 0:
+            if level >= self.RAISE_LEVEL:
+                raise(RuntimeError, str(prefix + ': ' + str(msg)))
+            elif self.DEBUG or level >= self.WARN_LEVEL or self.VERBOSE:
+                sys.stderr.write(prefix + ': ' + str(msg) + '\n')
+        elif self.VERBOSE:
+            print(prefix + ': ' + str(msg) + '\n')
+
     def daemonize(self):
         """
         UNIX double-fork magic, from Stevens' "Advanced Programming in the UNIX Environment"
         http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
         """
-        if self.DEBUG:
-            print 'daemonizing SimpleTask object'
+        self.message('daemonizing RepeatedTask object', 'DEBUG')
         try:
             pid = os.fork()
             if pid > 0:
@@ -35,8 +52,7 @@ class SimpleTask:
         except OSError, e:
             sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
-        if self.DEBUG:
-            print 'daemonizing successful'
+        self.message('daemonizing successful', 'DEBUG')
         # decouple from parent environment
         os.chdir("/")
         os.setsid()
@@ -49,11 +65,11 @@ class SimpleTask:
                 # exit from second parent
                 sys.exit(0)
         except OSError, e:
-            sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
+            # don't raise an exception, just write the message and exit(1)
+            self.message("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror), 'ERROR')
             sys.exit(1)
-        if self.DEBUG:
-            print 'daemonizing #2 successful'
-    
+        self.message('Second fork was successful.', 'DEBUG')
+
         # redirect standard file descriptors
         sys.stdout.flush()
         if self.DEBUG:
@@ -62,27 +78,24 @@ class SimpleTask:
         si = file(self.stdin, 'r')
         so = file(self.stdout, 'a+')
         se = file(self.stderr, 'a+', 0)
-        if self.DEBUG:
-            print 'opened stdin, stdout, stderr'
+        self.message('Opened stdin, stdout, stderr, now redirecting them...', 'DEBUG')
+        # duplicates si to sys.stdin, closing stdin first, if necessary
         os.dup2(si.fileno(), sys.stdin.fileno())
         os.dup2(so.fileno(), sys.stdout.fileno())
         os.dup2(se.fileno(), sys.stderr.fileno())
     
-        if self.DEBUG:
-            print 'writing pid file....'
-        # write pidfile
+        self.message('writing pid file....', 'DEBUG')
         atexit.register(self.delpid)
         pid = str(os.getpid())
         file(self.pidfile,'w+').write("%s\n" % pid)
-        if self.DEBUG:
-            print 'finished daemonizing'
+        self.message('Finished daemonizing RepeatedTask', 'DEBUG')
     
     def delpid(self):
         os.remove(self.pidfile)
 
     def start(self):
         """
-        Start the task
+        Start parent (conductor) task to call task() at the specified interval
         """
         # Check for a pidfile to see if the daemon already runs
         try:
@@ -93,7 +106,7 @@ class SimpleTask:
             pid = None
     
         if pid:
-            message = "pidfile %s already exist. SimpleTask already running?\n"
+            message = "pidfile %s already exist. RepeatedTask already running?\n"
             sys.stderr.write(message % self.pidfile)
             sys.exit(1)
         
@@ -103,7 +116,7 @@ class SimpleTask:
 
     def stop(self):
         """
-        Stop the daemon
+        Stop the parent (conductor) task
         """
         # Get the pid from the pidfile
         try:
@@ -171,5 +184,5 @@ class SimpleTask:
         while True:
             self.task()
             self.task_counter += 1
-            sleep(SLEEP_INTERVAL)
+            sleep(self.SLEEP_INTERVAL)
 

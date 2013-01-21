@@ -9,26 +9,22 @@ sys.path.append(os.path.expanduser(os.path.join('~', 'src', 'bitfloor', 'lib')))
 from bitfloor import RAPI
 
 sys.path.append(os.path.expanduser(os.path.join('~', 'src', 'python-posix-daemon', 'src')))
-#from daemon2x import Daemon
 
-from task import SimpleTask, Daemon
+from task import RepeatedTask
 
-class FenceTask(SimpleTask):
+class FenceTask(RepeatedTask):
+#    def __init__(self, path):
+#        super(FenceTask, self).__init__()
+#        with open(path) as f:
+#            config = json.load(f, object_hook=json_ascii.decode_dict)
+#            self.bf = RAPI(product_id=1, key=config['key'], secret=config['secret'])
+
     def task(self):
         print('FenceTask running...')
 
 def main():
     path = os.path.join('/etc','security','bfl.json')
 
-    with open(path) as f:
-        config = json.load(f, object_hook=json_ascii.decode_dict)
-    print config
-    bf = RAPI(product_id=1, key=config['key'], secret=config['secret'])
-
-    olatency = [] # order latency
-    clatency = [] # cancel latency
-
-    orders = []
     while True:
         try:
             err = False
@@ -44,7 +40,7 @@ def main():
 
 if __name__ == "__main__":
     tsk = FenceTask('/tmp/fence.pid')
-    tsk.SLEEP_INTERVAL = 1
+    tsk.SLEEP_INTERVAL = 3
     tsk.argv(sys.argv)
 
 
