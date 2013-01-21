@@ -18,33 +18,10 @@ class RepeatedTask(object):
 
         #self.flog = open(LOGFILE)
         self.task_counter = 0
-        stdin = stdin or os.devnull
-        stdout = stdout or os.devnull
-        stderr = stderr or os.devnull
-        if isinstance(stdin, basestring):
-            try:
-                self.stdin = open(stdin, 'rUb')
-            except: 
-                self.stdin = os.devnull
-        else:
-            self.stdin = stdin
-        if isinstance(stdout, basestring):
-            try:
-                self.stdout = open(stdout, 'ab')
-            except: 
-                self.stdout = os.devnull
-        else:
-            self.stdout = stdout
-        if isinstance(stdin, basestring):
-            try:
-                self.stderr = open(stderr, 'ab')
-            except:
-                self.stderr = os.devnull
-        else:
-            self.stderr = stderr
-        
-        self.stdout = stdout
-        self.stderr = stderr
+        # these are just file paths at this point, not buffers or file pointers
+        self.stdin = stdin or os.devnull
+        self.stdout = stdout or os.devnull
+        self.stderr = stderr or os.devnull
         self.pidfile = pidfile
 
     def message(self, msg, level=1):
