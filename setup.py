@@ -1,12 +1,12 @@
 # setup.py for Fence
 from distutils.core import setup
 import os
+from fence import __version__
 
-VERSION = '0.0.2'
 setup(
     name = "fence",
     # packages = ["fence"],
-    version = "0.0.2",
+    version = __version__,
     description = "BitCoin trending and trading bot",
     long_description = open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     author = "Hobson Lane",
