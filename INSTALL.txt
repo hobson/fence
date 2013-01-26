@@ -1,0 +1,25 @@
+Installing Fence
++++++++++++++++++
+
+See https://github.com/hobsonlane/fence for more information.
+
+.. Contents::
+
+INTRODUCTION
+=============
+
+This python module is in alpha testing.  Install at your own risk.
+
+PREREQUISITES AND INSTALLATION
+===============================
+
+Fence requires python > 2.6, that's it.
+
+
+On Ubuntu >= 9.04
+~~~~~~~~~~~~~~
+
+To install Fence and all it's dependencies...
+
+    apt-get install pip
+    pip install fence
